@@ -1,0 +1,31 @@
+plugins {
+    id 'application'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.20'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
+}
+
+group "com.vengateshm"
+version "0.0.1"
+mainClassName = "com.vengateshm.ApplicationKt"
+
+repositories {
+    mavenCentral()
+}
+
+tasks.create("stage") {
+    dependsOn("installDist")
+}
+
+dependencies {
+    implementation "io.ktor:ktor-server-core:$ktor_version"
+    implementation "io.ktor:ktor-server-netty:$ktor_version"
+    implementation "ch.qos.logback:logback-classic:$logback_version"
+    implementation "io.ktor:ktor-serialization:$ktor_version"
+    implementation "io.ktor:ktor-auth:$ktor_version"
+    implementation "io.ktor:ktor-auth-jwt:$ktor_version"
+    implementation 'org.ktorm:ktorm-core:3.4.1'
+    implementation 'org.postgresql:postgresql:42.3.1'
+    implementation 'org.mindrot:jbcrypt:0.4'
+
+    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
+}
