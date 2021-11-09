@@ -5,6 +5,7 @@ import com.vengateshm.entities.Notes
 import com.vengateshm.models.Note
 import com.vengateshm.models.NoteRequest
 import com.vengateshm.models.NoteResponse
+import com.vengateshm.models.toNote
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -17,12 +18,9 @@ fun Application.notesRoutes() {
 
     routing {
         get("/notes") {
-            val notes = db.from(Notes).select()
-                .map {
-                    val id = it[Notes.id]
-                    val note = it[Notes.note]
-                    Note(id ?: -1, note ?: "")
-                }
+            val notes = db.from(Notes)
+                .select()
+                .map { it.toNote() }
             call.respond(notes)
         }
 
@@ -57,11 +55,7 @@ fun Application.notesRoutes() {
             val note = db.from(Notes)
                 .select()
                 .where { Notes.id eq id }
-                .map {
-                    val id = it[Notes.id]!!
-                    val note = it[Notes.note]!!
-                    Note(id = id, note = note)
-                }.firstOrNull()
+                .map { it.toNote() }.firstOrNull()
 
             if (note == null) {
                 call.respond(

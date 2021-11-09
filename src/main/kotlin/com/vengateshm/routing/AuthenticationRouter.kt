@@ -7,6 +7,7 @@ import com.vengateshm.models.User
 import com.vengateshm.models.UserCredentials
 import com.vengateshm.utils.TokenManager
 import com.typesafe.config.ConfigFactory
+import com.vengateshm.models.toUser
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
@@ -81,33 +82,35 @@ fun Application.authenticationRoutes() {
                 return@post
             }
 
-            val username = userCredentials.username.lowercase(Locale.getDefault())
+            val username = userCredentials.username.lowercase()
             val password = userCredentials.password
 
             // Check if user exists
             val user = db.from(Users)
                 .select()
                 .where { Users.username eq username }
-                .map {
-                    val id = it[Users.id]!!
-                    val username = it[Users.username]!!
-                    val password = it[Users.password]!!
-                    User(id, username, password)
-                }.firstOrNull()
+                .map { it.toUser() }
+                .firstOrNull()
 
             if (user == null) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    NoteResponse(success = false, data = "Invalid username or password.")
+                    NoteResponse(
+                        success = false,
+                        data = "Invalid username or password"
+                    )
                 )
                 return@post
             }
 
             val doesPasswordMatch = BCrypt.checkpw(password, user.password)
-            if (!doesPasswordMatch) {
+            if (doesPasswordMatch.not()) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    NoteResponse(success = false, data = "Invalid username or password.")
+                    NoteResponse(
+                        success = false,
+                        data = "Invalid username or password"
+                    )
                 )
                 return@post
             }
@@ -115,7 +118,10 @@ fun Application.authenticationRoutes() {
             val token = tokenManager.generateJWTToken(user)
             call.respond(
                 HttpStatusCode.OK,
-                NoteResponse(success = true, data = token)
+                NoteResponse(
+                    success = true,
+                    data = token
+                )
             )
         }
 
